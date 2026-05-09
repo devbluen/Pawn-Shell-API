@@ -23,11 +23,17 @@ jobs:
         with:
           clean: true
           fetch-depth: 0
+          submodules: false
 
       - name: Checkout Submodules
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive --depth=1
+
+      - name: Debug Submodules
+        run: |
+          cat .gitmodules
+          git submodule status
 
       - name: Setup Python
         uses: actions/setup-python@v2
@@ -78,11 +84,17 @@ jobs:
         with:
           clean: true
           fetch-depth: 0
+          submodules: false
 
       - name: Checkout Submodules
         run: |
           git submodule sync --recursive
           git submodule update --init --recursive --depth=1
+
+      - name: Debug Submodules
+        run: |
+          cat .gitmodules
+          git submodule status
 
       - name: Install packages
         run: sudo apt-get install -y g++-multilib
