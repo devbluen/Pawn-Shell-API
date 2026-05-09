@@ -28,6 +28,7 @@ ShellExec("uptime -p", "OnShellUpTime");
 1. Download the files in the releases section.
 2. Place the `.dll` or `.so` file in the `components` folder within your project.
 3. Place the `.inc` file inside `qawno/include`
+4. Include the `#include <ShellApi>` tag in your main `.pwn` file.
 
 # 📜 Natives
 ```pawn
