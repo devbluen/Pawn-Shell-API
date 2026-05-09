@@ -1,0 +1,121 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "*"
+      - "*/*"
+      - "**"
+    tags:
+      - 'v*'
+  
+env:
+  PLUGIN_VERSION: 1.0.1
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-release:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: true
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+
+      - name: Install latest conan
+        run: |
+          python -m pip install --upgrade pip
+          pip install conan "conan<2.0"
+
+      - name: Generate build files
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release .. -G "Visual Studio 17 2022" -A Win32 -T v142
+          cmake --build . --config Release
+      
+      - name: Prepare Artifacts
+        shell: pwsh
+        run: |
+          mkdir dist
+          copy "build/Release/ShellAPI.dll" "dist/"
+          copy "ShellApi.inc" "dist/"
+          Compress-Archive -Path dist/* -DestinationPath "shellapi-${{ env.PLUGIN_VERSION }}-win32.zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellapi-${{ env.PLUGIN_VERSION }}-win32
+          path: shellapi-${{ env.PLUGIN_VERSION }}-win32.zip
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shellapi-${{ env.PLUGIN_VERSION }}-win32.zip
+          name: ShellAPI ${{ github.ref_name }}
+          tag_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          clean: true
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install packages
+        run: sudo apt-get install g++-multilib
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+
+      - name: Install latest conan
+        run: |
+          python -m pip install --upgrade pip
+          pip install conan "conan<2.0"
+
+      - name: Generate build files
+        run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
+
+      - name: Build
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      - name: Create artifact
+        run: |
+          mkdir dist
+          find build -name "ShellAPI.so" -exec cp {} dist/ \;
+          cp ShellApi.inc dist/
+          tar -czf shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz -C dist .
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shellapi-${{ env.PLUGIN_VERSION }}-linux
+          path: shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz
+          tag_name: ${{ github.ref }}
+          name: ShellAPI ${{ github.ref_name }}
+          append_body: true 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
