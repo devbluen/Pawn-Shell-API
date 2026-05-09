@@ -10,7 +10,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/omp-sdk/cmake")
 include(AddSAMPPlugin)
 
-add_subdirectory(lib/omp-sdk)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/omp-sdk/CMakeLists.txt")
+    add_subdirectory("lib/omp-sdk")
+else()
+    message(FATAL_ERROR "SDK not found in lib/omp-sdk! Check the submodules.")
+endif()
 
 add_samp_plugin(ShellAPI
     src/main.cpp
