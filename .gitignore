@@ -33,8 +33,6 @@
 Release/
 Debug/
 build/
-lib/
-cmake/
 
 # Visual Studio user-specific files
 *.vcxproj.user
