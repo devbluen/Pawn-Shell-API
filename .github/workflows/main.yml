@@ -26,6 +26,9 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Update Submodules
+        run: git submodule update --init --recursive
+
       - name: Setup Python
         uses: actions/setup-python@v2
 
@@ -79,6 +82,9 @@ jobs:
 
       - name: Install packages
         run: sudo apt-get install g++-multilib
+
+      - name: Update Submodules
+        run: git submodule update --init --recursive
 
       - name: Setup Python
         uses: actions/setup-python@v2
