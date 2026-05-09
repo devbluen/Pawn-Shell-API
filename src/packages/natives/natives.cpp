@@ -73,8 +73,11 @@ void Script::ExecuteAsync(std::string command, std::string callback) {
         int result = pclose(pipe);
 #endif
 
-        if(m_publics[callback] && m_publics[callback]->Exists()) {
-            m_publics[callback]->Exec(result, output);
+        if (!callback.empty()) {
+            auto it = m_publics.find(callback);
+            if (it != m_publics.end() && it->second && it->second->Exists()) {
+                it->second->Exec(result, output);
+            }
         }
     }
 }
