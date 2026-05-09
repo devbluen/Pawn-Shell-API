@@ -13,7 +13,6 @@ add_subdirectory(lib/omp-sdk)
 
 add_samp_plugin(ShellAPI
     src/main.cpp
-    src/packages/logs/logs.cpp
     src/packages/natives/natives.cpp
 )
 
