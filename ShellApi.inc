@@ -5,4 +5,4 @@
 #define _shellapi_function
 
 // Natives
-native ShellExec(const command[], const callback[]);
+native ShellExec(const command[], const callback[] = "");
