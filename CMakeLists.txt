@@ -7,14 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/lib/omp-sdk/cmake")
 include(AddSAMPPlugin)
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/omp-sdk/CMakeLists.txt")
-    add_subdirectory("lib/omp-sdk")
-else()
-    message(FATAL_ERROR "SDK not found in lib/omp-sdk! Check the submodules.")
-endif()
+add_subdirectory(lib/omp-sdk)
 
 add_samp_plugin(ShellAPI
     src/main.cpp
