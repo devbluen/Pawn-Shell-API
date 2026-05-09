@@ -22,28 +22,18 @@ jobs:
       - uses: actions/checkout@v4
         with:
           clean: true
+          submodules: recursive
           fetch-depth: 0
-          submodules: false
-
-      - name: Checkout Submodules
-        shell: bash
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive
-          echo "--- Submodule status ---"
-          git submodule status
 
       - name: Setup Python
         uses: actions/setup-python@v2
 
-      - name: Install Conan
-        shell: bash
+      - name: Install latest conan
         run: |
           python -m pip install --upgrade pip
-          pip install "conan<2.0"
+          pip install conan "conan<2.0"
 
       - name: Generate build files
-        shell: bash
         run: |
           mkdir build
           cd build
@@ -83,32 +73,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           clean: true
+          submodules: recursive
           fetch-depth: 0
-          submodules: false
-
-      - name: Checkout Submodules
-        run: |
-          git submodule sync --recursive
-          git submodule update --init --recursive
-          echo "--- Submodule status ---"
-          git submodule status
 
       - name: Install packages
-        run: sudo apt-get install -y g++-multilib
+        run: sudo apt-get install g++-multilib
 
       - name: Setup Python
         uses: actions/setup-python@v2
 
-      - name: Install Conan
+      - name: Install latest conan
         run: |
           python -m pip install --upgrade pip
-          pip install "conan<2.0"
+          pip install conan "conan<2.0"
 
       - name: Generate build files
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
+        run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
 
       - name: Build
         run: |
