@@ -24,7 +24,6 @@
 
     // Misc
 #include "packages/natives/natives.hpp"
-#include "packages/logs/logs.hpp"
 
 class PluginComponent final : 
                     public IComponent,
