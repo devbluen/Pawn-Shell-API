@@ -34,3 +34,21 @@ ShellExec("uptime -p", "OnShellUpTime");
 ```pawn
 native ShellExec(const command[], const callback[] = "");
 ```
+
+# 🍪 Development
+`git clone --recursive https://github.com/devbluen/Pawn-Shell-API.git`
+
+Windows Building
+```ps1
+mkdir build; 
+cd build;
+cmake -DCMAKE_BUILD_TYPE=Release .. -G "Visual Studio 17 2022" -A Win32 -T v142
+cmake --build . --config Release
+```
+
+Linux Building
+```ps1
+mkdir build 
+cd build 
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
+```
