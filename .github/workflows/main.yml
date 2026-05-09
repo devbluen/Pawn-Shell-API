@@ -26,9 +26,6 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Update Submodules
-        run: git submodule update --init --recursive
-
       - name: Setup Python
         uses: actions/setup-python@v2
 
@@ -36,6 +33,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install conan "conan<2.0"
+
+      - name: Update Submodules
+        run: git submodule update --init --recursive
 
       - name: Generate build files
         run: |
@@ -83,9 +83,6 @@ jobs:
       - name: Install packages
         run: sudo apt-get install g++-multilib
 
-      - name: Update Submodules
-        run: git submodule update --init --recursive
-
       - name: Setup Python
         uses: actions/setup-python@v2
 
@@ -93,6 +90,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install conan "conan<2.0"
+
+      - name: Update Submodules
+        run: git submodule update --init --recursive
 
       - name: Generate build files
         run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
