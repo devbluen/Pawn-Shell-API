@@ -1,6 +1,7 @@
 
 #include "packages/natives/natives.hpp"
 #include "packages/functions/utf8fix.hpp"
+#include "packages/logs/logs.hpp"
 
 bool Script::OnLoad() {
     int num_publics{};
@@ -17,6 +18,30 @@ bool Script::OnLoad() {
 
 bool Plugin::OnLoad() {
     RegisterNative<&Script::n_ShellExec>("ShellExec");
+    RegisterNative<&Script::n_ShellExecAwait>("ShellExecAwait");
+
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, "       ooooooooo.         .o.       oooooo   oooooo     oooo ooooo      ooo ");
+    Log::Write(LogLevel::Message, "       `888   `Y88.      .888.       `888.    `888.     .8'  `888b.     `8' ");
+    Log::Write(LogLevel::Message, "       888   .d88'     .8\"888.       `888.   .8888.   .8'    8 `88b.    8  ");
+    Log::Write(LogLevel::Message, "       888ooo88P'     .8' `888.       `888  .8'`888. .8'     8   `88b.  8  ");
+    Log::Write(LogLevel::Message, "       888           .88ooo8888.       `888.8'  `888.8'      8     `88b.8  ");
+    Log::Write(LogLevel::Message, "       888          .8'     `888.       `888'    `888'       8       `888  ");
+    Log::Write(LogLevel::Message, "       o888o        o88o     o8888o       `8'      `8'       o8o        `8  ");
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, "        .oooooo..o ooooo   ooooo oooooooooooo ooooo        ooooo        ");
+    Log::Write(LogLevel::Message, "       d8P'    `Y8 `888'   `888' `888'     `8 `888'        `888'        ");
+    Log::Write(LogLevel::Message, "       Y88bo.       888     888   888          888          888         ");
+    Log::Write(LogLevel::Message, "       `\"Y8888o.   888ooooo888   888oooo8     888          888         ");
+    Log::Write(LogLevel::Message, "           `\"Y88b  888     888   888    \"     888          888         ");
+    Log::Write(LogLevel::Message, "       oo     .d8P  888     888   888       o  888       o  888       o ");
+    Log::Write(LogLevel::Message, "       8""88888P'  o888o   o888o o888ooooood8 o888ooooood8 o888ooooood8 ");
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, "   Created by github.com/devbluen");
+    Log::Write(LogLevel::Message, " ");
+    Log::Write(LogLevel::Message, " ");
     return true;
 }
 
@@ -26,6 +51,11 @@ cell Script::n_ShellExec(std::string command, std::string callback) {
     });
     
     t.detach();
+    return true; 
+}
+
+cell Script::n_ShellExecAwait(std::string command, std::string callback) {
+    ExecuteAsync(command, callback);
     return true; 
 }
 

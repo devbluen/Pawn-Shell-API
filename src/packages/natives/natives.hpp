@@ -16,6 +16,7 @@ class Script : public ptl::AbstractScript<Script> {
 
         bool OnLoad();
         cell n_ShellExec(std::string command, std::string callback);
+        cell n_ShellExecAwait(std::string command, std::string callback);
         
     private:
         void ExecuteAsync(std::string command, std::string callback);

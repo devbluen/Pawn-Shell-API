@@ -2,7 +2,9 @@
         // Utils
 #include "main.hpp"
 
-void PluginComponent::onLoad(ICore* core) {}
+void PluginComponent::onLoad(ICore* core) {
+    getCore() = core;
+}
 
 void PluginComponent::onInit(IComponentList* components) {
     gPawnComponents = components->queryComponent<IPawnComponent>();

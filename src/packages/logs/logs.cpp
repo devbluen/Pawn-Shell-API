@@ -14,6 +14,6 @@ namespace Log {
         va_start(args, format);
         vsnprintf(buffer, sizeof buffer, format, args);
         va_end(args);
-        getCore->logLn(logtype, "   [SHILD-GUARD]: %s", buffer);
+        getCore->logLn(logtype, "%s", buffer);
     }
 }

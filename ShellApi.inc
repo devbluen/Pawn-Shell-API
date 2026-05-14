@@ -6,3 +6,4 @@
 
 // Natives
 native ShellExec(const command[], const callback[] = "");
+native ShellExecAwait(const command[], const callback[] = "");
