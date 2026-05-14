@@ -37,7 +37,7 @@ class PluginComponent final :
         PROVIDE_UID(0xEC77BF5A19BEF0C8);
 
         StringView componentName() const override { return "ShellAPI"; }
-        SemanticVersion componentVersion() const override { return { 1, 0, 3, 6 }; }
+        SemanticVersion componentVersion() const override { return { 1, 1, 0, 5 }; }
         void onLoad(ICore* core) override;
         void onInit(IComponentList* components) override;
         void onReady() override;

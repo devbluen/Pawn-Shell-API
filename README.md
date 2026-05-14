@@ -1,7 +1,7 @@
 # 🫧 Pawn Shell API
 Execute commands in Windows or Linux directly from your Pawn code.
 
-# ⭐ Usage Example
+# 🪅 Usage Example
 Windows
 ```pawn
 forward OnShellCalc(result, const output[]);
@@ -33,6 +33,7 @@ ShellExec("uptime -p", "OnShellUpTime");
 # 📜 Natives
 ```pawn
 native ShellExec(const command[], const callback[] = "");
+native ShellExecAwait(const command[], const callback[] = "");
 ```
 
 # 🍪 Development
