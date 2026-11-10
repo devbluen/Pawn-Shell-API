@@ -1,119 +1,173 @@
 name: Build
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - "*"
-      - "*/*"
-      - "**"
-    tags:
-      - 'v*'
 
-env:
-  PLUGIN_VERSION: 1.1.0
+# Versioning: the git tag is the single source of truth.
+#   - Push to any branch      -> build only (version = last tag + "-dev.<sha>")
+#   - Push a tag v1.2.3/1.2.3 -> build + GitHub Release for that version
+#   - Actions > Build > "Run workflow" -> pick patch/minor/major (or type a version);
+#     the next version is computed from the latest tag, built, tagged and released.
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v[0-9]*", "[0-9]*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump (from the latest tag)"
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      version:
+        description: "Or an explicit version (e.g. 1.2.0). Overrides bump."
+        type: string
+        required: false
 
 permissions:
   contents: write
 
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' && !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
-  build-windows-release:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}   # numeric MAJOR.MINOR.PATCH, passed to CMake
+      label: ${{ steps.v.outputs.label }}       # used in artifact names
+      tag: ${{ steps.v.outputs.tag }}
+      release: ${{ steps.v.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: v
+        shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXPLICIT: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          semver='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+          latest=$(git tag --list | sed -nE 's/^v?([0-9]+\.[0-9]+\.[0-9]+)$/\1/p' | sort -V | tail -n1)
+          latest=${latest:-0.0.0}
+          echo "Latest tag version: $latest"
+
+          release=false
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            tag="$GITHUB_REF_NAME"
+            label="$version"
+            release=true
+          elif [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            if [[ -n "${EXPLICIT:-}" ]]; then
+              version="${EXPLICIT#v}"
+            else
+              IFS=. read -r ma mi pa <<< "$latest"
+              case "$BUMP" in
+                major) version="$((ma+1)).0.0" ;;
+                minor) version="$ma.$((mi+1)).0" ;;
+                *)     version="$ma.$mi.$((pa+1))" ;;
+              esac
+            fi
+            tag="v$version"
+            label="$version"
+            release=true
+            if git rev-parse -q --verify "refs/tags/$tag" >/dev/null || git rev-parse -q --verify "refs/tags/$version" >/dev/null; then
+              echo "::error::Tag for version $version already exists."
+              exit 1
+            fi
+          else
+            version="$latest"
+            tag=""
+            label="$latest-dev.${GITHUB_SHA::7}"
+          fi
+
+          if ! [[ "$version" =~ $semver ]]; then
+            echo "::error::Invalid version '$version' (expected MAJOR.MINOR.PATCH)."
+            exit 1
+          fi
+
+          echo "Building version $label (release=$release)"
+          {
+            echo "version=$version"
+            echo "label=$label"
+            echo "tag=$tag"
+            echo "release=$release"
+          } >> "$GITHUB_OUTPUT"
+          echo "### ShellAPI $label" >> "$GITHUB_STEP_SUMMARY"
+
+  build-windows:
+    needs: version
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
         with:
-          clean: true
           submodules: recursive
-          fetch-depth: 0
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-
-      - name: Install latest conan
+      - name: Configure & build
         run: |
-          python -m pip install --upgrade pip
-          pip install conan "conan<2.0"
+          cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -T v142 -DSHELLAPI_VERSION=${{ needs.version.outputs.version }}
+          cmake --build build --config Release
 
-      - name: Generate build files
-        run: |
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=Release .. -G "Visual Studio 17 2022" -A Win32 -T v142
-          cmake --build . --config Release
-
-      - name: Prepare Artifacts
+      - name: Package
         shell: pwsh
         run: |
-          mkdir dist
-          copy "build/Release/ShellAPI.dll" "dist/"
-          copy "ShellApi.inc" "dist/"
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item build/Release/ShellAPI.dll, ShellApi.inc dist/
+          Compress-Archive -Path dist/* -DestinationPath shellapi-${{ needs.version.outputs.label }}-win32.zip
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: shellapi-${{ env.PLUGIN_VERSION }}-win32
-          path: dist/
+          name: shellapi-win32
+          path: shellapi-${{ needs.version.outputs.label }}-win32.zip
 
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: shellapi-${{ env.PLUGIN_VERSION }}-win32.zip
-          name: ShellAPI ${{ github.ref_name }}
-          tag_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-linux-release:
+  build-linux:
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          clean: true
           submodules: recursive
-          fetch-depth: 0
 
       - name: Install packages
-        run: sudo apt-get install g++-multilib
+        run: sudo apt-get update && sudo apt-get install -y g++-multilib
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-
-      - name: Install latest conan
+      - name: Configure & build
         run: |
-          python -m pip install --upgrade pip
-          pip install conan "conan<2.0"
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DSHELLAPI_VERSION=${{ needs.version.outputs.version }}
+          cmake --build build --config Release
 
-      - name: Generate build files
-        run: mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
-
-      - name: Build
-        run: |
-          cd build
-          cmake --build . --config Release
-
-      - name: Create artifact
+      - name: Package
         run: |
           mkdir dist
           find build -name "ShellAPI.so" -exec cp {} dist/ \;
           cp ShellApi.inc dist/
-          tar -czf shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz -C dist .
+          tar -czf shellapi-${{ needs.version.outputs.label }}-linux.tar.gz -C dist .
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: shellapi-${{ env.PLUGIN_VERSION }}-linux
-          path: shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz
+          name: shellapi-linux
+          path: shellapi-${{ needs.version.outputs.label }}-linux.tar.gz
 
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
+  release:
+    needs: [version, build-windows, build-linux]
+    if: needs.version.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: shellapi-${{ env.PLUGIN_VERSION }}-linux.tar.gz
-          tag_name: ${{ github.ref }}
-          name: ShellAPI ${{ github.ref_name }}
-          append_body: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: ${{ needs.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ShellAPI ${{ needs.version.outputs.version }}
+          generate_release_notes: true
+          files: dist/*

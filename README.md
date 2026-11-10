@@ -53,3 +53,11 @@ mkdir build
 cd build 
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32
 ```
+## Releasing a new version
+
+The version lives only in the git tag; CMake and the plugin read it from there.
+
+- **From GitHub:** go to *Actions → Build → Run workflow* and pick `patch`, `minor` or `major`, or type a version such as `1.2.0`. The workflow works out the next version, builds Windows and Linux, creates the `vX.Y.Z` tag and publishes the release with both files attached.
+- **From the terminal:** `git tag v1.2.0 && git push origin v1.2.0`
+
+A normal push to a branch only builds the plugin. Its artifacts are named `X.Y.Z-dev.<sha>`.

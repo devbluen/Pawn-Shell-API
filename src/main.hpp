@@ -22,6 +22,13 @@
 #define THISCALL
 #endif
 
+    // Version (injected by CMake from the git tag / -DSHELLAPI_VERSION)
+#ifndef SHELLAPI_VERSION_MAJOR
+#define SHELLAPI_VERSION_MAJOR 0
+#define SHELLAPI_VERSION_MINOR 0
+#define SHELLAPI_VERSION_PATCH 0
+#endif
+
     // Misc
 #include "packages/natives/natives.hpp"
 #include "packages/logs/logs.hpp"
@@ -37,7 +44,7 @@ class PluginComponent final :
         PROVIDE_UID(0xEC77BF5A19BEF0C8);
 
         StringView componentName() const override { return "ShellAPI"; }
-        SemanticVersion componentVersion() const override { return { 1, 1, 0, 5 }; }
+        SemanticVersion componentVersion() const override { return { SHELLAPI_VERSION_MAJOR, SHELLAPI_VERSION_MINOR, SHELLAPI_VERSION_PATCH, 0 }; }
         void onLoad(ICore* core) override;
         void onInit(IComponentList* components) override;
         void onReady() override;
