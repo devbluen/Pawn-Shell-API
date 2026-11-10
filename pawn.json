@@ -3,5 +3,9 @@
 	"plugins": {
 		"windows": "shellapi-*-win32.zip",
 		"linux": "shellapi-*-linux.zip"
+	},
+	"layout": {
+		"samp":   { "plugins": "*ShellAPI.*" },
+		"openmp": { "components": "*ShellAPI.*" }
 	}
 }
