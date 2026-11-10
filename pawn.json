@@ -1,0 +1,7 @@
+{
+	"supports": ["samp", "openmp"],
+	"plugins": {
+		"windows": "shellapi-*-win32.zip",
+		"linux": "shellapi-*-linux.zip"
+	}
+}
