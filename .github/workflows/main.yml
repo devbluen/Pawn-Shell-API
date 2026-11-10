@@ -7,10 +7,6 @@ name: Build
 #     the next version is computed from the latest tag, built, tagged and released.
 
 on:
-  push:
-    branches: ["**"]
-    tags: ["v[0-9]*", "[0-9]*"]
-  pull_request:
   workflow_dispatch:
     inputs:
       bump:
@@ -110,7 +106,7 @@ jobs:
 
       - name: Configure & build
         run: |
-          cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -T v142 -DSHELLAPI_VERSION=${{ needs.version.outputs.version }}
+          cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -T v142 "-DSHELLAPI_VERSION=${{ needs.version.outputs.version }}"
           cmake --build build --config Release
 
       - name: Package
@@ -138,7 +134,7 @@ jobs:
 
       - name: Configure & build
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 -DSHELLAPI_VERSION=${{ needs.version.outputs.version }}
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS=-m32 -DCMAKE_CXX_FLAGS=-m32 "-DSHELLAPI_VERSION=${{ needs.version.outputs.version }}"
           cmake --build build --config Release
 
       - name: Package
