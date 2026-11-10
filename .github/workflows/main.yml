@@ -1,16 +1,9 @@
 name: Build
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "*"
-      - "*/*"
-      - "**"
-    tags:
-      - 'v*'
 
 env:
-  PLUGIN_VERSION: 1.1.0
+  PLUGIN_VERSION: 1.1.1
 
 permissions:
   contents: write
